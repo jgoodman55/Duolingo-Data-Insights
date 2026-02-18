@@ -5,11 +5,28 @@ Problem Statement Here
 ## Google Cloud Initialization
 
 1. Create a new Google Cloud Project and take note of the project id
+1. **Might delete the below**, not sure if service account is necessary
 1. Go to IAM & Admin then click in Service Accounts 
 1. Create a new Service Account with roles: BigQuery Admin, Compute Admin, and Storage Admin
 1. Click the elipses under Actions and click the Manage Keys option
 1. Click the Add key button, then click Create new key, then select JSON
 1. The JSON will go to your downloads. Save the file in a safe place. Do NOT show to anyone
+
+## Github Codespaces
+
+To avoid dependencies and installations, run this project by connecting to GitHub codespaces.
+
+### Requirements
+
+1. You need a github account
+1. Install VS Code
+1. Open VS Code, go to Extensions, and install GitHub Codespaces
+
+## Initialize the Project
+
+1. Open VS Code
+1. In the search bar in the top middle, search "> Codespaces: Connect to Codespace" and click the result.
+1. Once connected, you'll need to set up your 
 
 ## Setting Environment Variables
 
