@@ -1,5 +1,6 @@
 # Environment variables file
 .env
+secrets/*.json
 
 # Local .terraform directories
 .terraform/

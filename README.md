@@ -12,8 +12,10 @@ Problem Statement Here
 1. The JSON will go to your downloads. Save the file in a safe place. Do NOT show to anyone
 
 ## Set up Environment Variables
-1. Create a **.env** file based on **template.env**
-1. Set `GCP_KEY_PATH` to where you saved the key in the steps above
+1. Since the codespaces directory is separate from your computer, you need to upload the service account key locally to use
+1. Create a secrets folder and add the file to the secrets folder (secrets/*.json is in .gitignore)
+1. Create a **.env** file based on [template.env](template.env)
+1. Set `GCP_KEY_PATH` in [docker-compose.yml](docker-compose.yml) to where you saved the key .json in the secrets folder
 
 ## Github Codespaces
 
@@ -44,4 +46,4 @@ Kestra will be the tool that runs the end to end pipeline process.
 - gcp_dataset
 
 1. Run **docker compose up** to start up kestra.
-    - Note that the GCP Service Account credentials will be added via the GCP_KEY_PATH varible in the docker-compose.yml and GCP_KEY_PATH comes from .env
+    - Note that the GCP Service Account credentials will be added via the GCP_KEY_PATH varible in the [docker-compose.yml](docker-compose.yml) and GCP_KEY_PATH comes from .env
