@@ -47,3 +47,9 @@ Kestra will be the tool that runs the end to end pipeline process.
 
 1. Run **docker compose up** to start up kestra.
     - Note that the GCP Service Account credentials will be added via the GCP_KEY_PATH varible in the [docker-compose.yml](docker-compose.yml) and GCP_KEY_PATH comes from .env
+
+1. Launch http://127.0.0.1:8080/ui/ and login with credentials defined in [docker-compose.yml](docker-compose.yml) under kestra -> server -> basicAuth
+
+1. Run the gcp_kv flow to create the key value pairs needed for GCP
+1. Run the gcp_setup flow to create the buckets
+1. Left off here, create a master file that can run several flows for ELT
