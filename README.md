@@ -29,11 +29,6 @@ To avoid dependencies and installations, run this project by connecting to GitHu
     - If you've already set up a codespace, search "> Codespaces: Connect to Codespace"
 1. Once connected, you'll need to set up your 
 
-## Setting Environment Variables
-
-1. See the [example.env](example.env) file for the environment variables that you need to set.
-1. Rename the file **.env** in your local repo in order to properly set the environment variables.
-
 ## Kestra
 
 Kestra will be the tool that runs the end to end pipeline process.
