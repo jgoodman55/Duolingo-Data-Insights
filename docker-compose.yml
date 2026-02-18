@@ -28,9 +28,9 @@ services:
       - kestra_data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
-      - ~/.config/gcloud:/home/kestra/.config/gcloud:ro
+      - ~/.config/gcloud:/root/.config/gcloud:ro
     environment:
-      GOOGLE_APPLICATION_CREDENTIALS: /home/kestra/.config/gcloud/application_default_credentials.json
+      GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/application_default_credentials.json
       KESTRA_CONFIGURATION: |
         datasources:
           postgres:
