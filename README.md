@@ -25,7 +25,8 @@ To avoid dependencies and installations, run this project by connecting to GitHu
 ## Initialize the Project
 
 1. Open VS Code
-1. In the search bar in the top middle, search "> Codespaces: Connect to Codespace" and click the result.
+1. In the search bar in the top middle, search "> Codespaces: Create New Codespace" and click the result.
+    - If you've already set up a codespace, search "> Codespaces: Connect to Codespace"
 1. Once connected, you'll need to set up your 
 
 ## Setting Environment Variables
