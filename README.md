@@ -18,16 +18,17 @@ To avoid dependencies and installations, run this project by connecting to GitHu
 
 ### Requirements
 
-1. You need a github account
+1. You need a GitHub account
 1. Install VS Code
 1. Open VS Code, go to Extensions, and install GitHub Codespaces
+1. Clone this git repository
 
 ## Initialize the Project
 
 1. Open VS Code
 1. In the search bar in the top middle, search "> Codespaces: Create New Codespace" and click the result.
     - If you've already set up a codespace, search "> Codespaces: Connect to Codespace"
-1. Once connected, you'll need to set up your 
+1. For a new codespace, choose the repository, and choose the 2 core option
 
 ## Kestra
 
