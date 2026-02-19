@@ -1,0 +1,72 @@
+id: table_creation
+namespace: duolingo
+description: |
+  Creating a BigQuery external table and table from the duolingo spaced repetition data set
+
+inputs:
+  - id: file_name
+    type: STRING
+    defaults: "duolingo_spaced_repetition_data"
+
+variables:
+  file: "{{inputs.file_name}}.csv"
+  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
+  table: "{{kv('GCP_DATASET')}}.{{inputs.file_name}}"
+  data: "{{outputs.download_and_unzip.outputFiles[inputs.file_name ~ '.csv']}}" 
+
+tasks:
+
+  - id: duolingo_external_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE EXTERNAL TABLE `{{kv('GCP_PROJECT_ID')}}.{{render(vars.table)}}_ext`
+      (
+        p_recall FLOAT64,
+        timestamp INT64,
+        delta INT64,
+        user_id STRING,
+        learning_language STRING,
+        ui_language STRING,
+        lexeme_id STRING,
+        lexeme_string STRING,
+        history_seen INT64,
+        history_correct INT64
+      )
+      OPTIONS (
+        format = 'CSV',
+        uris = ['{{render(vars.gcs_file)}}'],
+        skip_leading_rows = 1,
+        allow_quoted_newlines = TRUE
+      );
+
+  - id: duolingo_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE TABLE `{{kv('GCP_PROJECT_ID')}}.{{render(vars.table)}}`
+      PARTITION BY DATE(TIMESTAMP_TRUNC(TIMESTAMP_SECONDS(timestamp), DAY))
+      CLUSTER BY user_id, lexeme_id
+      AS
+      SELECT
+        MD5(CONCAT(
+          COALESCE(CAST(user_id AS STRING), ""),
+          COALESCE(CAST(lexeme_id AS STRING), ""),
+          COALESCE(CAST(timestamp AS STRING), "")
+        )) AS unique_row_id,
+        "{{render(vars.file)}}" AS filename,
+        *,
+        TIMESTAMP_SECONDS(timestamp) AS event_ts,
+        DATE(TIMESTAMP_TRUNC(TIMESTAMP_SECONDS(timestamp), DAY)) AS event_date
+      FROM `{{kv('GCP_PROJECT_ID')}}.{{render(vars.table)}}_ext`;      
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    description: If you'd like to explore Kestra outputs, disable it.
+    disabled: false
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
+
