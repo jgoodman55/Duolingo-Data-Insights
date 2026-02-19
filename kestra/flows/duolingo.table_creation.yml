@@ -30,7 +30,9 @@ tasks:
         lexeme_id STRING,
         lexeme_string STRING,
         history_seen INT64,
-        history_correct INT64
+        history_correct INT64,
+        session_seen INT64,
+        session_correct INT64
       )
       OPTIONS (
         format = 'CSV',
@@ -56,6 +58,8 @@ tasks:
         lexeme_string STRING,
         history_seen INT64,
         history_correct INT64,
+        session_seen INT64,
+        session_correct INT64,
         event_ts TIMESTAMP,
         event_dt DATE
       )
@@ -81,16 +85,18 @@ tasks:
         lexeme_string,
         history_seen,
         history_correct,
+        session_seen,
+        session_correct,
         event_ts,
         event_dt
       )
       SELECT
-        MD5(CONCAT(
+        TO_HEX(MD5(CONCAT(
               COALESCE(CAST(lexeme_id AS STRING), ""),
               COALESCE(CAST(timestamp AS STRING), ""),
-              COALESCE(CAST(delta AS STRING), ""),
+              COALESCE(CAST(session_seen AS STRING), ""),
               COALESCE(CAST(user_id AS STRING), "")
-            )) AS unique_row_id,
+            ))) AS unique_row_id,
         "{{ render(vars.file) }}" AS filename,
         p_recall,
         timestamp,
@@ -102,6 +108,8 @@ tasks:
         lexeme_string,
         history_seen,
         history_correct,
+        session_seen,
+        session_correct,
         TIMESTAMP_SECONDS(timestamp) AS event_ts,
         DATE(TIMESTAMP_SECONDS(timestamp)) AS event_dt
       FROM `{{ kv('GCP_PROJECT_ID') }}.{{ render(vars.table) }}_ext`;
