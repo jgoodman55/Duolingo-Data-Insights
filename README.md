@@ -15,7 +15,8 @@ Problem Statement Here
 1. Since the codespaces directory is separate from your computer, you need to upload the service account key locally to use
 1. Create a secrets folder and add the file to the secrets folder (secrets/*.json is in .gitignore)
 1. Create a **.env** file based on [template.env](template.env)
-1. Set `GCP_KEY_PATH` in [docker-compose.yml](docker-compose.yml) to where you saved the key .json in the secrets folder
+    - Set `GCP_KEY_PATH` to where you saved the key .json in the secrets folder
+    - Set `LOCAL_FLOWS_PATH` to the repositories kestra/flows folder
 
 ## Github Codespaces
 
@@ -39,17 +40,13 @@ To avoid dependencies and installations, run this project by connecting to GitHu
 
 Kestra will be the tool that runs the end to end pipeline process.
 
-1. Update the following variables in [gcp_kv.yaml](kestra/flows/gcp_kv.yaml)
-- gcp_project_id
-- gcp_location
-- gcp_bucket_name
-- gcp_dataset
-
+1. Update the following variables in [gcp_kv.yml](kestra/flows/gcp_kv.yml)
+    - gcp_project_id
+    - gcp_location
+    - gcp_bucket_name
+    - gcp_dataset
 1. Run **docker compose up** to start up kestra.
-    - Note that the GCP Service Account credentials will be added via the GCP_KEY_PATH varible in the [docker-compose.yml](docker-compose.yml) and GCP_KEY_PATH comes from .env
-
 1. Launch http://127.0.0.1:8080/ui/ and login with credentials defined in [docker-compose.yml](docker-compose.yml) under kestra -> server -> basicAuth
-
 1. Run the gcp_kv flow to create the key value pairs needed for GCP
 1. Run the gcp_setup flow to create the buckets
 1. Left off here, create a master file that can run several flows for ELT

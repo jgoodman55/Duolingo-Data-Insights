@@ -1,0 +1,63 @@
+id: ingestion
+namespace: duolingo
+description: |
+  Downloading the duolingo spaced repitition data set
+
+inputs:
+  - id: doi
+    type: STRING
+    defaults: "doi:10.7910/DVN/N8XJME"
+
+tasks:
+
+  # STEP 1 — Fetch dataset metadata
+  - id: fetch_metadata
+    type: io.kestra.plugin.scripts.shell.Commands
+    outputFiles:
+      - metadata.json
+    commands:
+      - |
+        curl -s \
+        "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId={{inputs.doi}}" \
+        -o metadata.json
+
+  # STEP 2 — Extract the file ID for the .csv.gz file
+  - id: extract_file_id
+    type: io.kestra.plugin.scripts.shell.Commands
+    outputFiles:
+      - file_id.txt
+    commands:
+      - |
+        jq -r '
+        .data.latestVersion.files[]
+        | select(.dataFile.filename | endswith(".csv.gz"))
+        | .dataFile.id
+        ' metadata.json > file_id.txt
+
+  # STEP 3 — Download and unzip the file
+  - id: download_and_unzip
+    type: io.kestra.plugin.scripts.shell.Commands
+    commands:
+      - |
+        FILE_ID=$(cat file_id.txt)
+
+        echo "Downloading file ID: ${FILE_ID}"
+
+        curl -L \
+        "https://dataverse.harvard.edu/api/access/datafile/${FILE_ID}" \
+        | gunzip > duolingo.csv
+
+        echo "Download complete"
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    description: If you'd like to explore Kestra outputs, disable it.
+    disabled: false
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
+
