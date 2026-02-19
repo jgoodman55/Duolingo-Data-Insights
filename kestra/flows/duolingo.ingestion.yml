@@ -15,7 +15,7 @@ variables:
   file: "{{inputs.file_name}}.csv"
   gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
   table: "{{kv('GCP_DATASET')}}.{{inputs.file_name}}"
-  data: "{{outputs.extract.outputFiles[inputs.file_name ~ '.csv']}}"    
+  data: "{{outputs.download_and_unzip.outputFiles[inputs.file_name ~ '.csv']}}"   
 
 tasks:
 
@@ -35,9 +35,15 @@ tasks:
   # STEP 2 — Extract the file ID for the .csv.gz file
   - id: extract_file_id
     type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      image: alpine:3.19
+    inputFiles:
+      metadata.json: "{{outputs.fetch_metadata.outputFiles['metadata.json']}}"
     outputFiles:
       - file_id.txt
     commands:
+      - apk add -q jq
       - |
         jq -r '
         .data.latestVersion.files[]
@@ -48,6 +54,8 @@ tasks:
   # STEP 3 — Download and unzip the file
   - id: download_and_unzip
     type: io.kestra.plugin.scripts.shell.Commands
+    inputFiles:
+      file_id.txt: "{{outputs.extract_file_id.outputFiles['file_id.txt']}}"
     outputFiles:
       - "*.csv"
     taskRunner:
@@ -58,7 +66,7 @@ tasks:
 
         echo "Downloading file ID: ${FILE_ID}"
 
-        curl -L \
+        curl -sL \
         "https://dataverse.harvard.edu/api/access/datafile/${FILE_ID}" \
         | gunzip > {{inputs.file_name}}.csv
 

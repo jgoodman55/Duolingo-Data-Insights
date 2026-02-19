@@ -20,9 +20,7 @@ services:
       retries: 10
 
   kestra:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: kestra/kestra:v1.1
     pull_policy: always
     user: "root"
     command: server standalone --flow-path=/local_flows --no-tutorials
