@@ -7,6 +7,15 @@ inputs:
   - id: doi
     type: STRING
     defaults: "doi:10.7910/DVN/N8XJME"
+  - id: file_name
+    type: STRING
+    defaults: "duolingo_spaced_repetition_data"
+
+variables:
+  file: "{{inputs.file_name}}.csv"
+  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file}}"
+  table: "{{kv('GCP_DATASET')}}.{{inputs.file_name}}"
+  data: "{{outputs.extract.outputFiles[inputs.file_name ~ '.csv']}}"    
 
 tasks:
 
@@ -37,6 +46,10 @@ tasks:
   # STEP 3 — Download and unzip the file
   - id: download_and_unzip
     type: io.kestra.plugin.scripts.shell.Commands
+    outputFiles:
+      - "*.csv"
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
     commands:
       - |
         FILE_ID=$(cat file_id.txt)
@@ -45,9 +58,14 @@ tasks:
 
         curl -L \
         "https://dataverse.harvard.edu/api/access/datafile/${FILE_ID}" \
-        | gunzip > duolingo.csv
+        | gunzip > {{inputs.file_name}}.csv
 
         echo "Download complete"
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{render(vars.data)}}"
+    to: "{{render(vars.gcs_file)}}"
 
   - id: purge_files
     type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
