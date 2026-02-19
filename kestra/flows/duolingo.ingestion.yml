@@ -22,6 +22,8 @@ tasks:
   # STEP 1 — Fetch dataset metadata
   - id: fetch_metadata
     type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
     outputFiles:
       - metadata.json
     commands:
