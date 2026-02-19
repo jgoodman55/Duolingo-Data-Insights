@@ -12,10 +12,18 @@ Problem Statement Here
 1. The JSON will go to your downloads. Save the file in a safe place. Do NOT show to anyone
 
 ## Set up Environment Variables
-1. Since the codespaces directory is separate from your computer, you need to upload the service account key locally to use
+
+Choose either option below to utilize your GCP key.
+
+### Option 1: Create a secrets folder in codespaces
 1. Create a secrets folder and add the file to the secrets folder (secrets/*.json is in .gitignore)
 1. Create a **.env** file based on [template.env](template.env)
     - Set `GCP_KEY_PATH` to where you saved the key .json in the secrets folder
+    - Set `LOCAL_FLOWS_PATH` to the repositories kestra/flows folder
+
+### Option 2: Fork the repository and upload a GitHub Codespaces secret
+1. Follow these [instructions](https://docs.github.com/en/codespaces/managing-your-codespaces/managing-your-account-specific-secrets-for-github-codespaces) to create a GitHub Codespaces secret
+1. Create a **.env** file based on [template.env](template.env)
     - Set `LOCAL_FLOWS_PATH` to the repositories kestra/flows folder
 
 ## Github Codespaces
