@@ -11,4 +11,6 @@ clean-targets: ["target", "dbt_packages"]
 
 models:
   duolingo:
-    +materialized: table
+    staging:
+      +materialized: table
+      +schema: staging
