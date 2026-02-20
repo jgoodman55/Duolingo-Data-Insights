@@ -19,68 +19,78 @@ variables:
 
 tasks:
 
-  # STEP 1 — Fetch dataset metadata
-  - id: fetch_metadata
-    type: io.kestra.plugin.scripts.shell.Commands
-    taskRunner:
-      type: io.kestra.plugin.core.runner.Process
-    outputFiles:
-      - metadata.json
-    commands:
-      - |
-        curl -s \
-        "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId={{inputs.doi}}" \
-        -o metadata.json
+  # Get the list of files in the GCS bucket with the given prefix to check if the file already exists
+  - id: check_gcs_file
+    type: io.kestra.plugin.gcp.gcs.List
+    from: "gs://{{ kv('GCP_BUCKET_NAME') }}/"
 
-  # STEP 2 — Extract the file ID for the .csv.gz file
-  - id: extract_file_id
-    type: io.kestra.plugin.scripts.shell.Commands
-    taskRunner:
-      type: io.kestra.plugin.scripts.runner.docker.Docker
-      image: alpine:3.19
-    inputFiles:
-      metadata.json: "{{outputs.fetch_metadata.outputFiles['metadata.json']}}"
-    outputFiles:
-      - file_id.txt
-    commands:
-      - apk add -q jq
-      - |
-        jq -r '
-        .data.latestVersion.files[]
-        | select(.dataFile.filename | endswith(".csv.gz"))
-        | .dataFile.id
-        ' metadata.json > file_id.txt
+  # Ingest the data if the file doesn't already exist in GCS
+  - id: should_download
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.check_gcs_file.blobs | length == 0 }}"
+    then:
+      # STEP 1 — Fetch dataset metadata
+      - id: fetch_metadata
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        outputFiles:
+          - metadata.json
+        commands:
+          - |
+            curl -s \
+            "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId={{inputs.doi}}" \
+            -o metadata.json
 
-  # STEP 3 — Download and unzip the file
-  - id: download_and_unzip
-    type: io.kestra.plugin.scripts.shell.Commands
-    inputFiles:
-      file_id.txt: "{{outputs.extract_file_id.outputFiles['file_id.txt']}}"
-    outputFiles:
-      - "*.csv"
-    taskRunner:
-      type: io.kestra.plugin.core.runner.Process
-    commands:
-      - |
-        FILE_ID=$(cat file_id.txt)
+      # STEP 2 — Extract the file ID for the .csv.gz file
+      - id: extract_file_id
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: alpine:3.19
+        inputFiles:
+          metadata.json: "{{outputs.fetch_metadata.outputFiles['metadata.json']}}"
+        outputFiles:
+          - file_id.txt
+        commands:
+          - apk add -q jq
+          - |
+            jq -r '
+            .data.latestVersion.files[]
+            | select(.dataFile.filename | endswith(".csv.gz"))
+            | .dataFile.id
+            ' metadata.json > file_id.txt
 
-        echo "Downloading file ID: ${FILE_ID}"
+      # STEP 3 — Download and unzip the file
+      - id: download_and_unzip
+        type: io.kestra.plugin.scripts.shell.Commands
+        inputFiles:
+          file_id.txt: "{{outputs.extract_file_id.outputFiles['file_id.txt']}}"
+        outputFiles:
+          - "*.csv"
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        commands:
+          - |
+            FILE_ID=$(cat file_id.txt)
 
-        curl -sL \
-        "https://dataverse.harvard.edu/api/access/datafile/${FILE_ID}" \
-        | gunzip > {{inputs.file_name}}.csv
+            echo "Downloading file ID: ${FILE_ID}"
 
-        echo "Download complete"
+            curl -sL \
+            "https://dataverse.harvard.edu/api/access/datafile/${FILE_ID}" \
+            | gunzip > {{inputs.file_name}}.csv
 
-  - id: upload_to_gcs
-    type: io.kestra.plugin.gcp.gcs.Upload
-    from: "{{render(vars.data)}}"
-    to: "{{render(vars.gcs_file)}}"
+            echo "Download complete"
 
-  - id: purge_files
-    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
-    description: If you'd like to explore Kestra outputs, disable it.
-    disabled: false
+      - id: upload_to_gcs
+        type: io.kestra.plugin.gcp.gcs.Upload
+        from: "{{render(vars.data)}}"
+        to: "{{render(vars.gcs_file)}}"
+
+      - id: purge_files
+        type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+        description: If you'd like to explore Kestra outputs, disable it.
+        disabled: false
 
 pluginDefaults:
   - type: io.kestra.plugin.gcp
