@@ -1,0 +1,23 @@
+id: dbt_transform
+namespace: duolingo
+
+tasks:
+  - id: dbt_run
+    type: io.kestra.plugin.scripts.shell.Commands
+    commands:
+      - dbt run --profiles-dir /workspaces/duolingo-data-insights/Duolingo-Data-Insights/dbt --project-dir /workspaces/duolingo-data-insights/Duolingo-Data-Insights/dbt
+    runner: DOCKER
+    docker:
+      image: ghcr.io/dbt-labs/dbt-bigquery:1.8.latest
+      volumes:
+        - /workspaces/duolingo-data-insights/Duolingo-Data-Insights/dbt:/dbt
+        - /var/secrets/gcp/key.json:/var/secrets/gcp/key.json:ro
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: "{{ ENVS.GOOGLE_APPLICATION_CREDENTIALS }}"
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      projectId: "{{kv('GCP_PROJECT_ID')}}"
+      location: "{{kv('GCP_LOCATION')}}"
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
