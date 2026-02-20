@@ -63,3 +63,8 @@ Kestra will be the tool that runs the end to end pipeline process.
 1. Create key, value pairs with [duolingo.gcp_kv.yml](kestra/flows/duolingo.gcp_kv.yml)
 1. Create GCS buckets and dataset with [duolingo.gcp_setup.yml](kestra/flows/duolingo.gcp_setup.yml)
 1. Download and ingest the gzipped data with [duolingo.ingestion.yml](kestra/flows/duolingo.ingestion.yml)
+
+
+## DBT
+
+Need to set up ~/.dbt directory to place profiles.yml

@@ -17,4 +17,4 @@ select
     event_ts,
     event_dt
 
-from {{ source('duolingo', "{{ env_var('GCP_TABLE_NAME') }}") }}
+from {{ source('duolingo', 'duolingo_spaced_repetition_data') }}

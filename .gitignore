@@ -1,3 +1,9 @@
+# ignore dbt
+target/
+.venv/
+dbt_packages/
+logs/
+
 # Environment variables file
 .env
 secrets/*.json
