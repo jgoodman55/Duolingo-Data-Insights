@@ -10,31 +10,21 @@ tasks:
     gitDirectory: dbt
     dryRun: false
 
-  - id: dbt_run
-    type: io.kestra.plugin.scripts.shell.Commands
-
+  - id: dbt
+    type: io.kestra.plugin.dbt.cli.DbtCLI
+    namespaceFiles:
+      enabled: true
     containerImage: ghcr.io/dbt-labs/dbt-bigquery:1.8.latest
-
     taskRunner:
       type: io.kestra.plugin.scripts.runner.docker.Docker
-
-    volumes:
-      - /dbt:/dbt
-      - /var/secrets/gcp/key.json:/var/secrets/gcp/key.json:ro
-
+      volumes:
+        - /var/secrets/gcp/key.json:/var/secrets/gcp/key.json:ro
     env:
       GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/key.json
       GCP_PROJECT_ID: "{{ kv('GCP_PROJECT_ID') }}"
       GCP_LOCATION: "{{ kv('GCP_LOCATION') }}"
-      GCP_BUCKET_NAME: "{{ kv('GCP_BUCKET_NAME') }}"
-
+      GCP_DATASET: "{{ kv('GCP_DATASET') }}"
     commands:
-      - ls -la /dbt
-      - dbt build --profiles-dir /dbt --project-dir /dbt --select staging
+      - dbt build --project-dir dbt --profiles-dir dbt --select staging
 
-pluginDefaults:
-  - type: io.kestra.plugin.gcp
-    values:
-      projectId: "{{ kv('GCP_PROJECT_ID') }}"
-      location: "{{ kv('GCP_LOCATION') }}"
-      bucket: "{{ kv('GCP_BUCKET_NAME') }}"
+
