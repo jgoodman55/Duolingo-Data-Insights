@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: duolingo
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: "{{ env_var('GCP_DATASET') }}"
+    tables:
+      - name: "{{ env_var('GCP_TABLE_NAME') }}"
+        description: "This table contains the spaced repetition data from Duolingo, which includes information about user interactions with the spaced repetition system, such as review sessions, item performance, and scheduling data. This data is crucial for analyzing user engagement and optimizing the spaced repetition algorithm to enhance learning outcomes."
+        columns: 
+          - name: unique_row_id
+            description: A unique identifier made up of lexeme_id, timestamp, session_seen, and user_id to ensure each row is distinct
+            data_type: STRING
+            data_tests:
+              - not_null
+              - unique
+          - name: filename
+            description: The name of the source file from which the data was ingested
+            data_type: STRING
+          - name: p_recall
+            description: proportion of exercises from this lesson/practice where the word/lexeme was correctly recalled
+            data_type: FLOAT64
+          - name: timestamp
+            description: UNIX timestamp of the current lesson/practice
+            data_type: INT64
+          - name: delta
+            description: time (in seconds) since the last lesson/practice that included this word/lexeme
+            data_type: INT64
+          - name: user_id
+            description: student user ID who did the lesson/practice (anonymized)
+            data_type: STRING
+            tests:
+              - not_null
+          - name: learning_language
+            description: the language that the user is learning (e.g. "en" for English, "es" for Spanish)
+            data_type: STRING
+          - name: ui_language
+            description: the language of the user interface (e.g. "en" for English, "es" for Spanish)
+            data_type: STRING
+          - name: lexeme_id
+            description: system ID for the lexeme tag (i.e., word)
+            data_type: STRING
+          - name: lexeme_string
+            description: lexeme tag
+            data_type: STRING
+          - name: history_seen
+            description: total times user has seen the word/lexeme prior to this lesson/practice
+            data_type: INT64
+          - name: history_correct
+            description: total times user has been correct for the word/lexeme prior to this lesson/practice
+            data_type: INT64
+          - name: session_seen
+            description: times the user saw the word/lexeme during this lesson/practice
+            data_type: INT64
+          - name: session_correct
+            description: times the user got the word/lexeme correct during this lesson/practice
+            data_type: INT64
+          - name: event_ts
+            description: timestamp of the event in TIMESTAMP format
+            data_type: TIMESTAMP
+          - name: event_dt
+            description: date of the event in DATE format
+            data_type: DATE

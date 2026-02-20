@@ -1,0 +1,11 @@
+name: duolingo
+version: '1.0.0'
+profile: duolingo
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  duolingo:
+    +materialized: table
