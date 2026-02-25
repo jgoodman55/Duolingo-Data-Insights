@@ -18,7 +18,7 @@ tasks:
     taskRunner:
       type: io.kestra.plugin.scripts.runner.docker.Docker
       volumes:
-        - /var/secrets/gcp/key.json:/var/secrets/gcp/key.json:ro
+        - gcp_secret_volume:/var/secrets/gcp:ro
     env:
       GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/key.json
       GCP_PROJECT_ID: "{{ kv('GCP_PROJECT_ID') }}"

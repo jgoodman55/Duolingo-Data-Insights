@@ -3,6 +3,8 @@ volumes:
     driver: local
   kestra_data:
     driver: local
+  gcp_secret_volume:
+    driver: local
 
 services:
   kestra_postgres:
@@ -23,13 +25,19 @@ services:
     image: kestra/kestra:v1.1
     pull_policy: always
     user: "root"
-    command: server standalone --flow-path=/local_flows --no-tutorials
+    command: >
+      sh -c "
+      mkdir -p /shared/gcp &&
+      cp /var/secrets/gcp/key.json /shared/gcp/key.json &&
+      server standalone --flow-path=/local_flows --no-tutorials
+      "
     volumes:
       - kestra_data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
       - ${GCP_KEY_PATH}:/var/secrets/gcp/key.json:ro
       - ${LOCAL_FLOWS_PATH}:/local_flows
+      - gcp_secret_volume:/shared/gcp
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/key.json
       KESTRA_CONFIGURATION: |
