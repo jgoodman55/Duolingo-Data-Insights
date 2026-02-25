@@ -1,10 +1,15 @@
 id: dbt_transform
 namespace: duolingo
 
+inputs:
+  - id: repository_url
+    type: STRING
+    defaults: "https://github.com/jgoodman55/Duolingo-Data-Insights"
+
 tasks:
   - id: sync
     type: io.kestra.plugin.git.SyncNamespaceFiles
-    url: https://github.com/jgoodman55/Duolingo-Data-Insights
+    url: "{{inputs.repository_url}}"
     branch: main
     namespace: "{{ flow.namespace }}"
     gitDirectory: dbt
