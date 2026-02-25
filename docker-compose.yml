@@ -4,9 +4,18 @@ volumes:
   kestra_data:
     driver: local
   gcp_secret_volume:
+    name: gcp_secret_volume
     driver: local
 
 services:
+  gcp_key_init:
+    image: alpine:3.20
+    command: >
+      sh -lc "mkdir -p /out && cp /in/key.json /out/key.json && ls -l /out"
+    volumes:
+      - ${GCP_KEY_PATH}:/in/key.json:ro
+      - gcp_secret_volume:/out
+    restart: "no"
   kestra_postgres:
     image: postgres:18
     volumes:
@@ -25,19 +34,13 @@ services:
     image: kestra/kestra:v1.1
     pull_policy: always
     user: "root"
-    command: >
-      sh -c "
-      mkdir -p /shared/gcp &&
-      cp /var/secrets/gcp/key.json /shared/gcp/key.json &&
-      server standalone --flow-path=/local_flows --no-tutorials
-      "
+    command: ["server", "standalone", "--flow-path=/local_flows", "--no-tutorials"]
     volumes:
       - kestra_data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
-      - ${GCP_KEY_PATH}:/var/secrets/gcp/key.json:ro
       - ${LOCAL_FLOWS_PATH}:/local_flows
-      - gcp_secret_volume:/shared/gcp
+      - gcp_secret_volume:/var/secrets/gcp:ro
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/key.json
       KESTRA_CONFIGURATION: |
@@ -64,9 +67,16 @@ services:
             tmpDir:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:8080/
+          plugins:
+            configurations:
+              - type: io.kestra.plugin.scripts.runner.docker.Docker
+                values:
+                  volume-enabled: true
     ports:
       - "8080:8080"
       - "8081:8081"
     depends_on:
       kestra_postgres:
         condition: service_healthy
+      gcp_key_init:
+        condition: service_completed_successfully

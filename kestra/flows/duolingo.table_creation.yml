@@ -91,12 +91,7 @@ tasks:
         event_dt
       )
       SELECT
-        TO_HEX(MD5(CONCAT(
-              COALESCE(CAST(lexeme_id AS STRING), ""),
-              COALESCE(CAST(timestamp AS STRING), ""),
-              COALESCE(CAST(session_seen AS STRING), ""),
-              COALESCE(CAST(user_id AS STRING), "")
-            ))) AS unique_row_id,
+        GENERATE_UUID() AS unique_row_id,
         "{{ render(vars.file) }}" AS filename,
         p_recall,
         timestamp,

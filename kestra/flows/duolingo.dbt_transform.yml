@@ -25,6 +25,5 @@ tasks:
       GCP_LOCATION: "{{ kv('GCP_LOCATION') }}"
       GCP_DATASET: "{{ kv('GCP_DATASET') }}"
     commands:
-      - dbt build --project-dir dbt --profiles-dir dbt --select staging
-
+      - dbt build --project-dir . --profiles-dir . --select staging
 

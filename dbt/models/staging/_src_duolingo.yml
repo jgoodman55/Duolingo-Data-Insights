@@ -9,7 +9,7 @@ sources:
         description: "This table contains the spaced repetition data from Duolingo, which includes information about user interactions with the spaced repetition system, such as review sessions, item performance, and scheduling data. This data is crucial for analyzing user engagement and optimizing the spaced repetition algorithm to enhance learning outcomes."
         columns: 
           - name: unique_row_id
-            description: A unique identifier made up of lexeme_id, timestamp, session_seen, and user_id to ensure each row is distinct
+            description: A unique identifier created by GENERATE_UUID()
             data_type: STRING
             data_tests:
               - not_null
@@ -29,7 +29,7 @@ sources:
           - name: user_id
             description: student user ID who did the lesson/practice (anonymized)
             data_type: STRING
-            tests:
+            data_tests:
               - not_null
           - name: learning_language
             description: the language that the user is learning (e.g. "en" for English, "es" for Spanish)
