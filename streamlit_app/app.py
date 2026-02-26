@@ -31,26 +31,60 @@ with col1:
     """
 
     df = run_query(sql)
+
+    # Ensure numeric
     df["users"] = pd.to_numeric(df["users"], errors="coerce")
 
+    # Compute total + percent
+    total_users = df["users"].sum()
+    df["total_users"] = total_users
+    df["percent_of_total"] = df["users"] / total_users
+
     chart = (
-        alt.Chart(df)
-        .mark_bar()
-        .encode(
-            x=alt.X(
-                "learning_language:N",
-                sort=alt.SortField(field="users", order="descending"),
-                title="Learning Language"
-            ),
-            y=alt.Y(
-                "users:Q",
-                title="Number of Users"
-            ),
-            tooltip=["learning_language:N", "users:Q"]
+    alt.Chart(df)
+    .mark_bar()
+    .encode(
+        x=alt.X(
+            "learning_language:N",
+            sort=alt.SortField(field="users", order="descending"),
+            title="Learning Language"
+        ),
+        y=alt.Y(
+            "percent_of_total:Q",
+            title="Percent of Total Users",
+            axis=alt.Axis(format="%")
+        ),
+        tooltip=[
+            alt.Tooltip("learning_language:N", title="Language"),
+            alt.Tooltip("users:Q", title="Users", format=","),
+            alt.Tooltip("total_users:Q", title="Total Users", format=","),
+            alt.Tooltip("percent_of_total:Q", title="Percent of Total", format=".2%")
+            ]
         )
     )
 
-    st.altair_chart(chart, use_container_width=True)
+    # Text labels layer
+    text = (
+        alt.Chart(df)
+        .mark_text(
+            align="center",
+            baseline="bottom",
+            dy=-5
+        )
+        .encode(
+            x=alt.X(
+                "learning_language:N",
+                sort=alt.SortField(field="users", order="descending")
+            ),
+            y="percent_of_total:Q",
+            text=alt.Text("percent_of_total:Q", format=".1%")
+        )
+    )
+
+    # Layer them together
+    final_chart = chart + text
+
+    st.altair_chart(final_chart, use_container_width=True)
 
 # Tile 2: categorical distribution (users by learning language)
 with col2:
