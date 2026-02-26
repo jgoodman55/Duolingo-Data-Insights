@@ -29,6 +29,7 @@ with col1:
     ORDER BY users DESC
     """
     df = run_query(sql)
+    df = df.sort_values("users", ascending=False)
     st.bar_chart(df.set_index("learning_language"))
 
 # Tile 2: categorical distribution (users by learning language)
