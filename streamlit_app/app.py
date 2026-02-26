@@ -33,13 +33,15 @@ with col1:
     df = run_query(sql)
     df["users"] = df["users"].astype(int)  # ensure numeric
 
+    sort_order = df["learning_language"].tolist()  # df is already sorted by COUNT DESC from SQL
+
     chart = (
         alt.Chart(df)
         .mark_bar()
         .encode(
             x=alt.X(
                 "learning_language:N",
-                sort=alt.SortField(field="users", order="descending"),
+                sort=sort_order,  # explicit list overrides Altair's default alpha sort
                 title="Learning Language"
             ),
             y=alt.Y("users:Q", title="Number of Users"),
