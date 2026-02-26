@@ -31,6 +31,7 @@ with col1:
     """
 
     df = run_query(sql)
+    df["users"] = df["users"].astype(int)  # ensure numeric
 
     chart = (
         alt.Chart(df)
@@ -38,10 +39,11 @@ with col1:
         .encode(
             x=alt.X(
                 "learning_language:N",
-                sort="-y",  # 👈 this forces descending by users
+                sort=alt.SortField(field="users", order="descending"),
                 title="Learning Language"
             ),
-            y=alt.Y("users:Q", title="Number of Users")
+            y=alt.Y("users:Q", title="Number of Users"),
+            tooltip=["learning_language:N", "users:Q"]
         )
     )
 
