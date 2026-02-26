@@ -18,3 +18,5 @@ select
     event_dt
 
 from {{ source('duolingo', 'duolingo_spaced_repetition_data') }}
+
+where ui_language = 'en'
