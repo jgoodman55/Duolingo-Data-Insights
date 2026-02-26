@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import streamlit as st
+import altair as alt
 from google.cloud import bigquery
 
 st.set_page_config(page_title="Duolingo Dashboard", layout="wide")
@@ -28,9 +29,23 @@ with col1:
     GROUP BY 1
     ORDER BY users DESC
     """
+
     df = run_query(sql)
-    df = df.sort_values("users", ascending=False)
-    st.bar_chart(df.set_index("learning_language"))
+
+    chart = (
+        alt.Chart(df)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                "learning_language:N",
+                sort="-y",  # 👈 this forces descending by users
+                title="Learning Language"
+            ),
+            y=alt.Y("users:Q", title="Number of Users")
+        )
+    )
+
+    st.altair_chart(chart, use_container_width=True)
 
 # Tile 2: categorical distribution (users by learning language)
 with col2:
