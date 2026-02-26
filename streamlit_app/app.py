@@ -180,10 +180,6 @@ with col2:
         df = df.dropna(subset=["overall_accuracy"])
         unique_langs = sorted(df["learning_language"].unique())
 
-        color_scale = alt.Scale(
-            domain=unique_langs,
-            scheme="category10"
-        )
         # Sort languages by median accuracy (descending)
         order = (
             df.groupby("learning_language")["overall_accuracy"]
@@ -193,28 +189,51 @@ with col2:
             .tolist()
         )
 
-        boxplot = (
-            alt.Chart(df)
-            .mark_boxplot(size=40)
-            .encode(
-                x=alt.X(
-                    "learning_language:N",
-                    sort=order,
-                    title="Learning Language"
-                ),
-                y=alt.Y(
-                    "overall_accuracy:Q",
-                    title="Overall Accuracy",
-                    scale=alt.Scale(domain=[0, 1]),
-                    axis=alt.Axis(format=".0%")
-                ),
-                color=alt.Color("learning_language:N", scale=color_scale, legend=None),
-                tooltip=[
-                    alt.Tooltip("learning_language:N", title="Language"),
-                    alt.Tooltip("overall_accuracy:Q", title="Accuracy", format=".1%"),
-                ],
-            )
-            .properties(height=400)
+        # base encoding (reuse your order + color_scale)
+        base_enc = dict(
+            x=alt.X("learning_language:N", sort=order, title="Learning Language"),
+            y=alt.Y(
+                "overall_accuracy:Q",
+                title="Overall Accuracy",
+                scale=alt.Scale(domain=[0, 1]),
+                axis=alt.Axis(format=".0%")
+            ),
+            color=alt.Color("learning_language:N", scale=color_scale, legend=None),
         )
 
-        st.altair_chart(boxplot, use_container_width=True)
+        # 1) The boxplot itself (no tooltip)
+        box = (
+            alt.Chart(df)
+            .mark_boxplot(size=40, tooltip=None)  # ✅ fully disables default tooltip
+            .encode(**base_enc)
+        )
+
+        # 2) Invisible layer to provide a clean tooltip with aggregated stats
+        tooltip_layer = (
+            alt.Chart(df)
+            .transform_joinaggregate(
+                min_acc="min(overall_accuracy)",
+                q1_acc="q1(overall_accuracy)",
+                median_acc="median(overall_accuracy)",
+                q3_acc="q3(overall_accuracy)",
+                max_acc="max(overall_accuracy)",
+                groupby=["learning_language"],
+            )
+            .mark_point(opacity=0, size=300)  # invisible but hoverable
+            .encode(
+                x=alt.X("learning_language:N", sort=order),
+                y=alt.Y("median_acc:Q"),  # anchor hover target around the box
+                tooltip=[
+                    alt.Tooltip("learning_language:N", title="Learning Language"),
+                    alt.Tooltip("min_acc:Q", title="Min", format=".1%"),
+                    alt.Tooltip("q1_acc:Q", title="Q1", format=".1%"),
+                    alt.Tooltip("median_acc:Q", title="Median", format=".1%"),
+                    alt.Tooltip("q3_acc:Q", title="Q3", format=".1%"),
+                    alt.Tooltip("max_acc:Q", title="Max", format=".1%"),
+                ],
+            )
+        )
+
+        final = (box + tooltip_layer).properties(height=400)
+
+        st.altair_chart(final, use_container_width=True)

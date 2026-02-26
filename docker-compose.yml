@@ -91,6 +91,7 @@ services:
       GCP_PROJECT_ID: ${GCP_PROJECT_ID}
       BQ_DATASET_MART: ${BQ_DATASET_MART}
     volumes:
+      - ./streamlit_app:/app
       - gcp_secret_volume:/var/secrets/gcp:ro
     depends_on:
       gcp_key_init:
