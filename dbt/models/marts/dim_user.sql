@@ -11,7 +11,7 @@ user_stats as (
 
         SUM(dim_user_learning_language.total_practices) AS total_practices,
 
-        COUNT(DISTINCT dim_user_learning_language.learning_language) AS cnt_learning_languages
+        COUNT(DISTINCT dim_user_learning_language.learning_language) AS cnt_learning_languages,
 
         CASE 
             WHEN SUM(dim_user_learning_language.user_history_seen) > 0
