@@ -66,6 +66,24 @@ if missing:
     )
     st.stop()
 
+TOP_N_LANGS = 8
+
+lang_domain_sql = f"""
+SELECT learning_language
+FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
+GROUP BY 1
+ORDER BY COUNT(DISTINCT user_id) DESC
+LIMIT {TOP_N_LANGS}
+"""
+
+lang_df, err = safe_run_query(lang_domain_sql)
+if err:
+    st.error("Failed to load language domain.")
+    st.code(err)
+else:
+    LANG_DOMAIN = lang_df["learning_language"].tolist()
+    color_scale = alt.Scale(domain=LANG_DOMAIN, scheme="category10")    
+
 # Last updated (ET) from one “source of truth” mart table
 last_updated_utc = get_table_last_modified(project_id, dataset_mart, "fct_user_learning_language")
 st.caption(f"Last updated (ET): {last_updated_utc.astimezone(ET):%Y-%m-%d %I:%M %p %Z}")
@@ -95,6 +113,7 @@ with col1:
         st.code(err)
     else:
         df["users"] = pd.to_numeric(df["users"], errors="coerce").fillna(0)
+        unique_langs = sorted(df["learning_language"].unique())
 
         total_users = float(df["users"].sum())
         df["total_users"] = total_users
@@ -114,6 +133,7 @@ with col1:
                     title="Percent of Total User–Learning Language Pairs",
                     axis=alt.Axis(format="%")
                 ),
+                color=alt.Color("learning_language:N", scale=color_scale, legend=None),
                 tooltip=[
                     alt.Tooltip("learning_language:N", title="Language"),
                     alt.Tooltip("percent_of_total:Q", title="Percent of Total", format=".2%"),
@@ -140,10 +160,10 @@ with col1:
 
 
 # -----------------------------
-# Tile 2: placeholder (safe) — swap in your time-series mart when ready
+# Tile 2: Accuracy by Learning Language
 # -----------------------------
 with col2:
-    st.subheader("Coming next: Time series tile")
+    st.subheader("Accuracy by Learning Language")
     sql = f"""
     SELECT
     learning_language,
@@ -158,56 +178,43 @@ with col2:
     else:
         df["overall_accuracy"] = pd.to_numeric(df["overall_accuracy"], errors="coerce")
         df = df.dropna(subset=["overall_accuracy"])
+        unique_langs = sorted(df["learning_language"].unique())
 
-        violin = (
+        color_scale = alt.Scale(
+            domain=unique_langs,
+            scheme="category10"
+        )
+        # Sort languages by median accuracy (descending)
+        order = (
+            df.groupby("learning_language")["overall_accuracy"]
+            .median()
+            .sort_values(ascending=False)
+            .index
+            .tolist()
+        )
+
+        boxplot = (
             alt.Chart(df)
-            .transform_density(
-                "overall_accuracy",
-                as_=["overall_accuracy", "density"],
-                groupby=["learning_language"],
-                extent=[0, 1],   # accuracy is 0..1
-                steps=60
-            )
-            .mark_area(orient="horizontal")
+            .mark_boxplot(size=40)
             .encode(
-                y=alt.Y(
+                x=alt.X(
                     "learning_language:N",
-                    sort=alt.SortField(field="learning_language", order="ascending"),
+                    sort=order,
                     title="Learning Language"
                 ),
-                x=alt.X(
-                    "density:Q",
-                    stack="center",
-                    title=None,
-                    axis=None
+                y=alt.Y(
+                    "overall_accuracy:Q",
+                    title="Overall Accuracy",
+                    scale=alt.Scale(domain=[0, 1]),
+                    axis=alt.Axis(format=".0%")
                 ),
-                x2="density:Q",
-                color=alt.Color("learning_language:N", legend=None),
+                color=alt.Color("learning_language:N", scale=color_scale, legend=None),
                 tooltip=[
                     alt.Tooltip("learning_language:N", title="Language"),
-                    alt.Tooltip("overall_accuracy:Q", title="Accuracy", format=".2f"),
-                    alt.Tooltip("density:Q", title="Density", format=".4f"),
+                    alt.Tooltip("overall_accuracy:Q", title="Accuracy", format=".1%"),
                 ],
             )
+            .properties(height=400)
         )
 
-        # Better: add a boxplot overlay for summary stats
-        box = (
-            alt.Chart(df)
-            .mark_boxplot(size=25)
-            .encode(
-                y=alt.Y("learning_language:N", title=""),
-                x=alt.X("overall_accuracy:Q", title="Overall Accuracy", scale=alt.Scale(domain=[0, 1])),
-                tooltip=[
-                    alt.Tooltip("learning_language:N", title="Language"),
-                    alt.Tooltip("overall_accuracy:Q", title="Accuracy", format=".2f"),
-                ],
-            )
-        )
-
-        st.altair_chart((violin + box).properties(height=350), use_container_width=True)
-
-    st.info(
-        "Add your temporal trend tile here (e.g., daily practices over time). "
-        "Once you have a `fct_practices_daily` mart, we can plug it in safely the same way as Tile 1."
-    )
+        st.altair_chart(boxplot, use_container_width=True)
