@@ -1,6 +1,14 @@
 id: pipeline_master
 namespace: duolingo
 
+triggers:
+  - id: yearly_run
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 0 10 1 *"
+    timezone: "America/New_York"
+    concurrency:
+      limit: 1
+
 tasks:
 
   - id: gcp_kv
