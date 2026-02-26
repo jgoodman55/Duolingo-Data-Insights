@@ -4,18 +4,19 @@ lexeme_accuracy AS (
 
     SELECT 
 
-        user_id, 
-        learning_language,
-        lexeme_id, 
+        stg_duolingo.user_id, 
+        cd_language.language_desc as learning_language,
+        stg_duolingo.lexeme_id, 
 
-        MIN(event_ts) as first_activity_ts,
-        MAX(event_ts) as last_activity_ts,
+        MIN(stg_duolingo.event_ts) as first_activity_ts,
+        MAX(stg_duolingo.event_ts) as last_activity_ts,
 
-        MAX(history_correct) AS lexeme_history_correct, 
-        MAX(history_seen) AS lexeme_history_seen
+        MAX(stg_duolingo.history_correct) AS lexeme_history_correct, 
+        MAX(stg_duolingo.history_seen) AS lexeme_history_seen
 
-    FROM {{ ref('stg_duolingo') }}
-    GROUP BY user_id, learning_language, lexeme_id
+    FROM {{ ref('stg_duolingo') }} stg_duolingo
+    LEFT JOIN {{ ref('cd_language') }} cd_language on stg_duolingo.learning_language = cd_language.language_cd
+    GROUP BY stg_duolingo.user_id, 2, stg_duolingo.lexeme_id
 
 ),
 

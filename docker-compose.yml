@@ -80,3 +80,18 @@ services:
         condition: service_healthy
       gcp_key_init:
         condition: service_completed_successfully
+
+  streamlit:
+    build:
+      context: ./streamlit_app
+    ports:
+      - "8501:8501"
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/key.json
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+      BQ_DATASET_MART: ${BQ_DATASET_MART}
+    volumes:
+      - gcp_secret_volume:/var/secrets/gcp:ro
+    depends_on:
+      gcp_key_init:
+        condition: service_completed_successfully
