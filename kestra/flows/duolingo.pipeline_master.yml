@@ -1,0 +1,34 @@
+id: pipeline_master
+namespace: duolingo
+
+tasks:
+
+  - id: gcp_kv
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: duolingo
+    flowId: duolingo.gcp_kv
+    wait: true
+
+  - id: gcp_setup
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: duolingo
+    flowId: duolingo.gcp_setup
+    wait: true
+
+  - id: ingestion
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: duolingo
+    flowId: duolingo.ingestion
+    wait: true
+
+  - id: table_creation
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: duolingo
+    flowId: duolingo.table_creation
+    wait: true
+
+  - id: dbt_transform
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: duolingo
+    flowId: duolingo.dbt_transform
+    wait: true
