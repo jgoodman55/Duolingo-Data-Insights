@@ -35,8 +35,8 @@ user_learning_language_stats AS (
 
     SELECT 
     
-        practice_events_ui_en.user_id, 
-        practice_events_ui_en.learning_language,
+        user_learning_language_accuracy.user_id, 
+        user_learning_language_accuracy.learning_language,
 
         MAX(user_learning_language_accuracy.user_history_correct) AS user_history_correct,
         MAX(user_learning_language_accuracy.user_history_seen) AS user_history_seen,
@@ -48,8 +48,8 @@ user_learning_language_stats AS (
             ELSE NULL
         END AS overall_accuracy,
 
-        MIN(practice_events_ui_en.event_ts) AS first_activity_ts,
-        MAX(practice_events_ui_en.event_ts) AS last_activity_ts,
+        MIN(user_learning_language_accuracy.event_ts) AS first_activity_ts,
+        MAX(user_learning_language_accuracy.event_ts) AS last_activity_ts,
 
         COUNT(*) AS total_practices
 
