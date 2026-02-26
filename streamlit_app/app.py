@@ -9,7 +9,7 @@ st.set_page_config(page_title="Duolingo Dashboard", layout="wide")
 project_id = os.environ["GCP_PROJECT_ID"]
 dataset_mart = os.environ["BQ_DATASET_MART"]
 
-client = bigquery.Client(project=project_id, location=os.environ["GCP_LOCATION"])
+client = bigquery.Client(project=project_id)
 
 def run_query(sql: str) -> pd.DataFrame:
     return client.query(sql).to_dataframe()
@@ -31,9 +31,7 @@ with col1:
     """
 
     df = run_query(sql)
-    df["users"] = df["users"].astype(int)  # ensure numeric
-
-    sort_order = df["learning_language"].tolist()  # df is already sorted by COUNT DESC from SQL
+    df["users"] = pd.to_numeric(df["users"], errors="coerce")
 
     chart = (
         alt.Chart(df)
@@ -41,10 +39,13 @@ with col1:
         .encode(
             x=alt.X(
                 "learning_language:N",
-                sort=sort_order,  # explicit list overrides Altair's default alpha sort
+                sort=alt.SortField(field="users", order="descending"),
                 title="Learning Language"
             ),
-            y=alt.Y("users:Q", title="Number of Users"),
+            y=alt.Y(
+                "users:Q",
+                title="Number of Users"
+            ),
             tooltip=["learning_language:N", "users:Q"]
         )
     )
