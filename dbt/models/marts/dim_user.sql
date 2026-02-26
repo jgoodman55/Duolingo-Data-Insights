@@ -12,6 +12,7 @@ user_stats as (
         COUNT(DISTINCT dim_user_learning_language.learning_language) AS cnt_learning_languages
 
     FROM {{ ref('dim_user_learning_language') }} dim_user_learning_language
+    GROUP BY dim_user_learning_language.user_id
 
 )
 
