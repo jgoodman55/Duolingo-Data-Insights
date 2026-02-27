@@ -6,7 +6,6 @@
 # Visualization Ideas
 1. Count and % of Total Learning Languages - done
 1. Distribution of Count of Languages Learned
-1. Distribution of Total Practices
 1. Count of lessons in the morning, afternoon, evening, night
 1. Distribution of Accuracy by learning language - done
-1. Count of lessons by day trend chart - make one of these
+1. Practices per user by language by day trend chart - done

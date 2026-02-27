@@ -1,6 +1,5 @@
 import os
 from zoneinfo import ZoneInfo
-
 import pandas as pd
 import streamlit as st
 import altair as alt
@@ -50,8 +49,7 @@ def get_table_last_modified(project_id: str, dataset_id: str, table_id: str):
 # -----------------------------
 # Header + Preflight Checks
 # -----------------------------
-st.title("Duolingo Learning Insights")
-
+st.title("Duolingo Spaced Repetition Data Exploration for Native English Speakers")
 required_tables = [
     "fct_user_learning_language",
     # Add your time-series mart here if/when you have it, e.g.:
@@ -85,165 +83,193 @@ else:
 last_updated_utc = get_table_last_modified(project_id, dataset_mart, "fct_user_learning_language")
 st.caption(f"Last updated (ET): {last_updated_utc.astimezone(ET):%Y-%m-%d %I:%M %p %Z}")
 
-col1, col2 = st.columns(2)
-
 # -----------------------------
 # Tile 1: % of total + counts in tooltip
 # -----------------------------
-with col1:
-    st.subheader("Users by Learning Language")
+st.subheader("Users by Learning Language")
 
-    sql = f"""
-    SELECT
-      learning_language,
-      COUNT(DISTINCT user_id) AS users
-    FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
-    GROUP BY 1
-    ORDER BY users DESC
-    """
+sql = f"""
+SELECT
+    learning_language,
+    COUNT(DISTINCT user_id) AS users
+FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
+GROUP BY 1
+ORDER BY users DESC
+"""
 
-    df, err = safe_run_query(sql)
-    if err:
-        st.error("Tile failed to load.")
-        st.code(err)
-    else:
-        df["users"] = pd.to_numeric(df["users"], errors="coerce").fillna(0)
-        unique_langs = sorted(df["learning_language"].unique())
+df, err = safe_run_query(sql)
+if err:
+    st.error("Tile failed to load.")
+    st.code(err)
+else:
+    df["users"] = pd.to_numeric(df["users"], errors="coerce").fillna(0)
+    unique_langs = sorted(df["learning_language"].unique())
 
-        total_users = float(df["users"].sum())
-        df["total_users"] = total_users
-        df["percent_of_total"] = df["users"] / total_users if total_users > 0 else 0.0
+    total_users = float(df["users"].sum())
+    df["total_users"] = total_users
+    df["percent_of_total"] = df["users"] / total_users if total_users > 0 else 0.0
 
-        bars = (
-            alt.Chart(df)
-            .mark_bar()
-            .encode(
-                x=alt.X(
-                    "learning_language:N",
-                    sort=alt.SortField(field="users", order="descending"),
-                    title="Learning Language"
-                ),
-                y=alt.Y(
-                    "percent_of_total:Q",
-                    title="Percent of Total User–Learning Language Pairs",
-                    axis=alt.Axis(format="%")
-                ),
-                color=alt.Color("learning_language:N", scale=color_scale, legend=None),
-                tooltip=[
-                    alt.Tooltip("learning_language:N", title="Language"),
-                    alt.Tooltip("percent_of_total:Q", title="Percent of Total", format=".2%"),
-                    alt.Tooltip("users:Q", title="Users", format=","),
-                    alt.Tooltip("total_users:Q", title="Total User-Learning Language Pairs", format=","),
-                ],
-            )
+    bars = (
+        alt.Chart(df)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                "learning_language:N",
+                sort=alt.SortField(field="users", order="descending"),
+                title="Learning Language",
+                axis=alt.Axis(labelAngle=-30)  # optional readability
+            ),
+            y=alt.Y(
+                "percent_of_total:Q",
+                title="Percent of Total User–Learning Language Pairs",
+                axis=alt.Axis(format="%")
+            ),
+            color=alt.Color("learning_language:N", scale=color_scale, legend=None),
+            tooltip=[
+                alt.Tooltip("learning_language:N", title="Language"),
+                alt.Tooltip("percent_of_total:Q", title="Percent of Total", format=".2%"),
+                alt.Tooltip("users:Q", title="Users", format=","),
+                alt.Tooltip("total_users:Q", title="Total Pairs", format=","),
+            ],
         )
+    )
 
-        labels = (
-            alt.Chart(df)
-            .mark_text(align="center", baseline="bottom", dy=-5)
-            .encode(
-                x=alt.X(
-                    "learning_language:N",
-                    sort=alt.SortField(field="users", order="descending")
-                ),
-                y=alt.Y("percent_of_total:Q"),
-                text=alt.Text("percent_of_total:Q", format=".1%")
-            )
+    labels = (
+        alt.Chart(df)
+        .mark_text(
+            dy=-8,                # move above bar
+            fontSize=12,
+            color="white"         # ensure visible
         )
+        .encode(
+            x=alt.X(
+                "learning_language:N",
+                sort=alt.SortField(field="users", order="descending")
+            ),
+            y=alt.Y("percent_of_total:Q"),
+            text=alt.Text("percent_of_total:Q", format=".1%")
+        )
+    )
 
-        st.altair_chart(bars + labels, use_container_width=True)
+    final_bar = (bars + labels).properties(height=350).configure_view(clip=False)
+    st.altair_chart(final_bar, use_container_width=True)
 
 
 # -----------------------------
 # Tile 2: Accuracy by Learning Language
 # -----------------------------
-with col2:
-    st.subheader("Accuracy by Learning Language")
-    sql = f"""
-    SELECT
-    learning_language,
-    overall_accuracy
-    FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
-    WHERE overall_accuracy IS NOT NULL
-    """
-    df, err = safe_run_query(sql)
-    if err:
-        st.error("Tile failed to load.")
-        st.code(err)
-    else:
-        df["overall_accuracy"] = pd.to_numeric(df["overall_accuracy"], errors="coerce")
-        df = df.dropna(subset=["overall_accuracy"])
-        unique_langs = sorted(df["learning_language"].unique())
+st.subheader("Accuracy by Learning Language - Sorted by Median Accuracy Desc")
+sql = f"""
+SELECT
+learning_language,
+overall_accuracy
+FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
+WHERE overall_accuracy IS NOT NULL
+"""
+df, err = safe_run_query(sql)
+if err:
+    st.error("Tile failed to load.")
+    st.code(err)
+else:
+    df["overall_accuracy"] = pd.to_numeric(df["overall_accuracy"], errors="coerce")
+    df = df.dropna(subset=["overall_accuracy"])
 
-        # Sort languages by median accuracy (descending)
-        order = (
-            df.groupby("learning_language")["overall_accuracy"]
-            .median()
-            .sort_values(ascending=False)
-            .index
-            .tolist()
+    # Sort languages by median accuracy (descending)
+    order = (
+        df.groupby("learning_language")["overall_accuracy"]
+        .median()
+        .sort_values(ascending=False)
+        .index
+        .tolist()
+    )
+
+    # 1) Violin layer — no column facet here
+    violin = (
+        alt.Chart()
+        .transform_density(
+            density="overall_accuracy",
+            as_=["overall_accuracy", "density"],
+            extent=[0, 1],
+            groupby=["learning_language"],
         )
-
-        # base encoding (reuse your order + color_scale)
-        base_enc = dict(
-            x=alt.X("learning_language:N", sort=order, title="Learning Language"),
+        .transform_calculate(negative_density="-datum.density")
+        .mark_area(orient="horizontal", opacity=1)
+        .encode(
+            x=alt.X("density:Q", axis = None),
+            x2="negative_density:Q", # Mirrors the area across the 0-axis
             y=alt.Y(
                 "overall_accuracy:Q",
-                title="Overall Accuracy",
+                title="Accuracy",
                 scale=alt.Scale(domain=[0, 1]),
-                axis=alt.Axis(format=".0%")
+                axis=alt.Axis(format=".0%"),
             ),
+            tooltip=[
+                alt.Tooltip("learning_language:N", title="Learning Language"),
+                alt.Tooltip("overall_accuracy:Q", title="Accuracy", format=".1%")
+            ],
             color=alt.Color("learning_language:N", scale=color_scale, legend=None),
         )
+    )
 
-        # 1) The boxplot itself (no tooltip)
-        box = alt.Chart(df).mark_boxplot(size=40).encode(
-            **base_enc,
-            tooltip=[]  # ✅ disables Altair's autogenerated tooltip
+    # 2) Median dot — no column facet here either
+    median_dot = (
+        alt.Chart()
+        .transform_aggregate(
+            median_acc="median(overall_accuracy)",
+            q1_acc="q1(overall_accuracy)",
+            q3_acc="q3(overall_accuracy)",
+            min_acc="min(overall_accuracy)",
+            max_acc="max(overall_accuracy)",
+            groupby=["learning_language"],
         )
+        .transform_calculate(density="0")  # zero density = center spine
+        .mark_point(color="white", filled=True, size=100, stroke="black", strokeWidth=1)
+        .encode(
+            x=alt.value(125),
+            y=alt.Y("median_acc:Q", scale=alt.Scale(domain=[0, 1])),
+            tooltip=[
+                alt.Tooltip("learning_language:N", title="Learning Language"),
+                alt.Tooltip("min_acc:Q", title="Min", format=".1%"),
+                alt.Tooltip("q1_acc:Q", title="Q1", format=".1%"),
+                alt.Tooltip("median_acc:Q", title="Median", format=".1%"),
+                alt.Tooltip("q3_acc:Q", title="Q3", format=".1%"),
+                alt.Tooltip("max_acc:Q", title="Max", format=".1%"),
+            ],
+        )
+    )
 
-        # 2) Invisible layer to provide a clean tooltip with aggregated stats
-        tooltip_layer = (
-            alt.Chart(df)
-            .transform_joinaggregate(
-                min_acc="min(overall_accuracy)",
-                q1_acc="q1(overall_accuracy)",
-                median_acc="median(overall_accuracy)",
-                q3_acc="q3(overall_accuracy)",
-                max_acc="max(overall_accuracy)",
-                groupby=["learning_language"],
-            )
-            .mark_point(opacity=0, size=300)  # invisible but hoverable
-            .encode(
-                x=alt.X("learning_language:N", sort=order),
-                y=alt.Y("median_acc:Q"),  # anchor hover target around the box
-                tooltip=[
-                    alt.Tooltip("learning_language:N", title="Learning Language"),
-                    alt.Tooltip("min_acc:Q", title="Min", format=".1%"),
-                    alt.Tooltip("q1_acc:Q", title="Q1", format=".1%"),
-                    alt.Tooltip("median_acc:Q", title="Median", format=".1%"),
-                    alt.Tooltip("q3_acc:Q", title="Q3", format=".1%"),
-                    alt.Tooltip("max_acc:Q", title="Max", format=".1%"),
-                ],
+    # 3) Layer first, THEN facet
+    final = (
+        alt.layer(violin, median_dot, data=df)
+        .properties(width=250, height=400)
+        .facet(
+            column=alt.Column(
+                "learning_language:N",
+                title="Learning Language",
+                sort=order,
+                header=alt.Header(titleOrient="bottom", labelOrient="bottom"),
             )
         )
+        .configure_facet(spacing=5)
+        .configure_view(stroke=None)
+        .properties(title="")
+        .resolve_scale(x="shared")
+    )
 
-        final = (box + tooltip_layer).properties(height=400)
-
-        st.altair_chart(final, use_container_width=True)
+    st.altair_chart(final, use_container_width=True)
 
 # -----------------------------
-# Tile 3: Daily Practices by Learning Language (line chart)
+# Tile 3: Daily Practices per User by Learning Language (line chart)
 # -----------------------------        
-st.subheader("Daily Practices by Learning Language")
+st.subheader("Daily Practices per User by Learning Language")
 
 sql = f"""
 SELECT
     learning_language,
     event_dt,
-    practices_completed
+    round(CAST(practices_completed AS FLOAT64)/NULLIF(active_users, 0), 2) AS practices_per_user
 FROM `{project_id}.{dataset_mart}.fct_daily_language_activity`
-ORDER BY learning_language, event_dt
+ORDER BY 1, 2
 """
 df, err = safe_run_query(sql)
 
@@ -256,24 +282,46 @@ else:
     # Optional: filter to LANG_DOMAIN so colors stay aligned
     df = df[df["learning_language"].isin(LANG_DOMAIN)]
 
-    line_chart = (
+    line = (
         alt.Chart(df)
         .mark_line(strokeWidth=2)
         .encode(
-            x=alt.X("event_dt:T", title="Date"),
-            y=alt.Y("practices_completed:Q", title="Practices Completed"),
+            x=alt.X(
+                "event_dt:T",
+                title="Date",
+                axis=alt.Axis(format="%m/%d/%y")
+            ),
+            y=alt.Y(
+                "practices_per_user:Q",
+                title="Practices Per User"
+            ),
             color=alt.Color(
                 "learning_language:N",
                 scale=color_scale,
                 legend=alt.Legend(title="Learning Language")
-            ),
-            tooltip=[
-                alt.Tooltip("learning_language:N", title="Language"),
-                alt.Tooltip("event_dt:T", title="Date"),
-                alt.Tooltip("practices_completed:Q", title="Practices", format=",")
-            ]
+            )
         )
-        .properties(height=400)
     )
 
-    st.altair_chart(line_chart, use_container_width=True)
+    points = (
+        alt.Chart(df)
+        .mark_circle(size=60)
+        .encode(
+            x="event_dt:T",
+            y="practices_per_user:Q",
+            color=alt.Color(
+                "learning_language:N",
+                scale=color_scale,
+                legend=None
+            ),
+            tooltip=[
+                alt.Tooltip("learning_language:N", title="Learning Language"),
+                alt.Tooltip("event_dt:T", title="Date", format="%m/%d/%y"),
+                alt.Tooltip("practices_per_user:Q", title="Practices Per User", format=",")
+            ]
+        )
+    )
+
+    final_chart = (line + points).properties(height=400)
+
+    st.altair_chart(final_chart, use_container_width=True)
