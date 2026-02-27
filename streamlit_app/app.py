@@ -66,14 +66,11 @@ if missing:
     )
     st.stop()
 
-TOP_N_LANGS = 8
-
 lang_domain_sql = f"""
 SELECT learning_language
 FROM `{project_id}.{dataset_mart}.fct_user_learning_language`
 GROUP BY 1
 ORDER BY COUNT(DISTINCT user_id) DESC
-LIMIT {TOP_N_LANGS}
 """
 
 lang_df, err = safe_run_query(lang_domain_sql)
@@ -88,9 +85,7 @@ else:
 last_updated_utc = get_table_last_modified(project_id, dataset_mart, "fct_user_learning_language")
 st.caption(f"Last updated (ET): {last_updated_utc.astimezone(ET):%Y-%m-%d %I:%M %p %Z}")
 
-
 col1, col2 = st.columns(2)
-
 
 # -----------------------------
 # Tile 1: % of total + counts in tooltip
@@ -236,3 +231,49 @@ with col2:
         final = (box + tooltip_layer).properties(height=400)
 
         st.altair_chart(final, use_container_width=True)
+
+# -----------------------------
+# Tile 3: Daily Practices by Learning Language (line chart)
+# -----------------------------        
+st.subheader("Daily Practices by Learning Language")
+
+sql = f"""
+SELECT
+    learning_language,
+    event_dt,
+    practices_completed
+FROM `{project_id}.{dataset_mart}.fct_daily_language_activity`
+ORDER BY learning_language, event_dt
+"""
+df, err = safe_run_query(sql)
+
+if err:
+    st.error("Tile failed to load.")
+    st.code(err)
+else:
+    df["event_dt"] = pd.to_datetime(df["event_dt"])
+
+    # Optional: filter to LANG_DOMAIN so colors stay aligned
+    df = df[df["learning_language"].isin(LANG_DOMAIN)]
+
+    line_chart = (
+        alt.Chart(df)
+        .mark_line(strokeWidth=2)
+        .encode(
+            x=alt.X("event_dt:T", title="Date"),
+            y=alt.Y("practices_completed:Q", title="Practices Completed"),
+            color=alt.Color(
+                "learning_language:N",
+                scale=color_scale,
+                legend=alt.Legend(title="Learning Language")
+            ),
+            tooltip=[
+                alt.Tooltip("learning_language:N", title="Language"),
+                alt.Tooltip("event_dt:T", title="Date"),
+                alt.Tooltip("practices_completed:Q", title="Practices", format=",")
+            ]
+        )
+        .properties(height=400)
+    )
+
+    st.altair_chart(line_chart, use_container_width=True)
