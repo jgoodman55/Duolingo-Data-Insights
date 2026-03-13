@@ -48,7 +48,7 @@ Kestra is the tool that runs the end to end pipeline process, and Streamlit visu
 ### Streamlit Dashboard App
 
 1. Ensure docker compose is still running
-1. Once the [Master Pipeline](kestra/flows/duolingo.pipeline_master.yml) has run successfully at least once, launch http://localhost:8501/ to open the Streamlit Dashboard App.
+1. Once the [Master Pipeline](kestra/flows/duolingo.pipeline_master.yml) has run successfully at least once, launch http://localhost:8501/ to open the Streamlit Dashboard App
 1. The Dashboard contains three visuals
     1. Users by Learning Language: Visualizes the distribution of languages being learned
     1. Accuracy by Learning Language: Visualizes the overall accuracy by learning language
