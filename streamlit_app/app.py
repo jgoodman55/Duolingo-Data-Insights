@@ -293,7 +293,7 @@ else:
             ),
             y=alt.Y(
                 "practices_per_user:Q",
-                title="Practices Per User"
+                title="Average Number ofPractices Per User"
             ),
             color=alt.Color(
                 "learning_language:N",
@@ -317,7 +317,7 @@ else:
             tooltip=[
                 alt.Tooltip("learning_language:N", title="Learning Language"),
                 alt.Tooltip("event_dt:T", title="Date", format="%m/%d/%y"),
-                alt.Tooltip("practices_per_user:Q", title="Practices Per User", format=",")
+                alt.Tooltip("practices_per_user:Q", title="Average Number of Practices Per User", format=",")
             ]
         )
     )
