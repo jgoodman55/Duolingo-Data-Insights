@@ -21,7 +21,7 @@ To run the Duolingo Data Insights Project, follow the sections below.
 ### Set up Secrets and Environment Variables
 
 1. Git clone this repository into a folder called "Duolingo-Data-Insights"
-1. Create a secrets folder within the "Duolingo-Data-Insights" folder and add the file to the secrets folder (secrets/*.json is in .gitignore)
+1. Create a secrets folder within the "Duolingo-Data-Insights" folder and add the service account key JSON file to the secrets folder (secrets/*.json is in .gitignore)
 1. Create a **.env** file based on [template.env](template.env)
 
 ### Kestra and Streamlit
