@@ -36,7 +36,9 @@ Kestra is the tool that runs the end to end pipeline process, and Streamlit visu
 1. Open VS Code (or your preferred editor) and open a new Git Bash terminal
 1. cd into the "Duolingo-Data-Insights" folder (the folder you created when you git cloned this repository)
 1. Run `docker compose up` to start up kestra and the streamlit app that will show a populated dashboard once the kestra flows have been run
-1. Open Kestra by going to http://127.0.0.1:8080/ui/ and login with the credentials defined in [docker-compose.yml](docker-compose.yml) under kestra -> server -> basicAuth
+1. Open Kestra by going to http://127.0.0.1:8080/ui/ and login with the credentials defined in [docker-compose.yml](docker-compose.yml) under services -> kestra -> environment -> KESTRA_CONFIGURATION -> kestra -> server -> basicAuth
+    - username: admin@kestra.io
+    - password: Admin1234
 1. Navigate to flows, then click on the text of the `pipeline_master`
 1. Run the **[Master Pipeline](kestra/flows/duolingo.pipeline_master.yml)** flow in kestra by clicking the **Execute** button in the top right corner. This will start running all the kestra flows in the following order:
     1. Create key, value pairs for Google Cloud with [duolingo.gcp_kv.yml](kestra/flows/duolingo.gcp_kv.yml)
@@ -54,5 +56,8 @@ Kestra is the tool that runs the end to end pipeline process, and Streamlit visu
 1. Once the [Master Pipeline](kestra/flows/duolingo.pipeline_master.yml) has run successfully at least once, launch http://localhost:8501/ to open the Streamlit Dashboard App
 1. The Dashboard contains three visuals
     1. Users by Learning Language: Visualizes the distribution of languages being learned
+    ![Users by Learning Language](images/bar_chart.png)
     1. Accuracy by Learning Language: Visualizes the overall accuracy by learning language
+    ![Accuracy by Learning Language](images/violin_plot.png)
     1. Daily Practices per User by Learning Language: Visualizes the average number of daily practices per user by laerning language
+    ![Daily Practices per User by Learning Language](images/trend_chart.png)
