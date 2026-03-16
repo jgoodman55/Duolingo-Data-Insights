@@ -42,7 +42,10 @@ Kestra is the tool that runs the end to end pipeline process, and Streamlit visu
     1. Create key, value pairs for Google Cloud with [duolingo.gcp_kv.yml](kestra/flows/duolingo.gcp_kv.yml)
     1. Create GCS buckets and dataset with [duolingo.gcp_setup.yml](kestra/flows/duolingo.gcp_setup.yml)
     1. Download and ingest the gzipped data into the GCS bucket with [duolingo.ingestion.yml](kestra/flows/duolingo.ingestion.yml)
-    1. Create the external table, DDL for the main table, and populate the main table with [duolingo.table_creation.yml](kestra/flows/duolingo.table_creation.yml)
+    1. Create the external table, DDL for the main table, and populate the main table with [duolingo.table_creation.yml](kestra/flows/duolingo.table_creation.yml). Task `duolingo_table_ddl` handles partioning and clustering explained below
+        1. partitioned by event_dt to optimize time-based analysis and reduce scan costs for trend queries in the dashboard
+        1. clustered by learning_language because the dashboard groups metrics by learning language, so clustering improves aggregation and filtering performance for those visuals
+        1. clustered by ui_language because this supports queries filtered by interface language
     1. Use DBT to transform the data into the relevant staging and marts tables to power the visuals in the streamlit app in [duolingo.dbt_transform.yml](kestra/flows/duolingo.dbt_transform.yml)
 
 ### Streamlit Dashboard App
