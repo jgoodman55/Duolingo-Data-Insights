@@ -18,7 +18,7 @@ To run the Duolingo Data Insights Project, follow the sections below.
 1. Click the Add key button, then click Create new key, then select JSON
 1. The JSON will go to your downloads. Save the file in a safe place. Do NOT show it to anyone
 
-### Set up Environment Variables
+### Set up Secrets and Environment Variables
 
 1. Git clone this repository into a folder called "Duolingo-Data-Insights"
 1. Create a secrets folder within the "Duolingo-Data-Insights" folder and add the file to the secrets folder (secrets/*.json is in .gitignore)
