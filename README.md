@@ -115,7 +115,9 @@ Visualizes the distribution of languages being learned
 Visualizes the overall accuracy by learning language
 ![Accuracy by Learning Language](images/violin_plot.png)
 
-### Daily Practices per User by Learning Language: Visualizes the average number of daily practices per user by laerning language
+### Daily Practices per User by Learning Language
+
+Visualizes the average number of daily practices per user by laerning language
 ![Daily Practices per User by Learning Language](images/trend_chart.png)
 
 ---
