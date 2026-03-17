@@ -106,13 +106,17 @@ Optimized for:
 ## 📈 Dashboard
 
 ### Users by Learning Language
+
+Visualizes the distribution of languages being learned
 ![Users by Learning Language](images/bar_chart.png)
 
-### Accuracy Distribution
-![Accuracy Distribution](images/violin_plot.png)
+### Accuracy by Learning Language
 
-### Daily Practice Trends
-![Daily Practice Trends](images/trend_chart.png)
+Visualizes the overall accuracy by learning language
+![Accuracy by Learning Language](images/violin_plot.png)
+
+### Daily Practices per User by Learning Language: Visualizes the average number of daily practices per user by laerning language
+![Daily Practices per User by Learning Language](images/trend_chart.png)
 
 ---
 
@@ -180,10 +184,3 @@ Kestra is the tool that runs the end to end pipeline process, and Streamlit visu
 
 1. Ensure docker compose is still running
 1. Once the [Master Pipeline](kestra/flows/duolingo.pipeline_master.yml) has run successfully at least once, launch http://localhost:8501/ to open the Streamlit Dashboard App
-1. The Dashboard contains three visuals
-    1. Users by Learning Language: Visualizes the distribution of languages being learned
-    ![Users by Learning Language](images/bar_chart.png)
-    1. Accuracy by Learning Language: Visualizes the overall accuracy by learning language
-    ![Accuracy by Learning Language](images/violin_plot.png)
-    1. Daily Practices per User by Learning Language: Visualizes the average number of daily practices per user by laerning language
-    ![Daily Practices per User by Learning Language](images/trend_chart.png)
