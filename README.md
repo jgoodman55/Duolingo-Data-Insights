@@ -1,8 +1,134 @@
 # Duolingo Data Insights
+_End-to-end batch data engineering project for the DataTalksClub Data Engineering Zoomcamp_
 
-## Project Problem Statement
+---
 
-Duolingo conducts rigorous studies to evalulate and improve the effectiveness of their app. Duolingo's paper [A Trainable Spaced Repetition Model for Language Learning](https://research.duolingo.com/papers/settles.acl16.pdf) describes spaced repition approaches and presents a new model, but the paper does not include a description of the users that are included in the study. The Duolingo Data Insights project focuses on native English speakers and visualizes the breakdown of users learning each language, the distribution of accuracy by language, and the average number of daily practices per user by language.
+## 🚀 Why This Project Matters
+Duolingo’s spaced repetition dataset is widely used in research but not easily accessible for practical analytics.
+
+This project transforms a **research dataset into a production-style analytics platform**, enabling:
+- exploration of language learning behavior at scale
+- understanding of accuracy differences across languages
+- tracking of user engagement over time
+
+It demonstrates how to turn raw data into **actionable insights using modern data engineering tools**.
+
+---
+
+## 📊 Overview
+This project builds an end-to-end batch data pipeline on Google Cloud.
+
+Pipeline flow:
+- ingest raw data into **GCS**
+- load into **BigQuery**
+- transform using **dbt**
+- serve via **Streamlit dashboard**
+
+---
+
+## 🏗️ Architecture Diagram
+```
+        +----------------------+
+        |  Duolingo Dataset    |
+        +----------+-----------+
+                   |
+                   v
+        +----------------------+
+        |   GCS (Data Lake)    |
+        +----------+-----------+
+                   |
+                   v
+        +----------------------+
+        | BigQuery (Warehouse) |
+        +----------+-----------+
+                   |
+                   v
+        +----------------------+
+        |  dbt Transformations |
+        +----------+-----------+
+                   |
+                   v
+        +----------------------+
+        | Streamlit Dashboard  |
+        +----------------------+
+```
+
+---
+
+## 🧱 Data Model (dbt Lineage)
+```
+            raw_external_table
+                    |
+                    v
+             staging_models
+                    |
+                    v
+               mart_models
+                    |
+                    v
+             dashboard_tables
+```
+
+- **Staging:** cleaning + filtering (ui_language = 'en')
+- **Marts:** aggregations for dashboard use
+- **Final layer:** optimized for analytics queries
+
+---
+
+## 🛠️ Technologies Used
+- **Cloud:** Google Cloud (GCS, BigQuery)
+- **Orchestration:** Kestra
+- **Transformations:** dbt
+- **Visualization:** Streamlit
+- **Containerization:** Docker Compose
+
+---
+
+## ⚙️ Pipeline Steps
+1. Provision GCS + BigQuery  
+2. Upload dataset to GCS  
+3. Create external + native tables  
+4. Transform data with dbt  
+5. Serve via Streamlit  
+
+---
+
+## 🗄️ Data Warehouse Design
+- **Partitioning:** `event_dt`
+- **Clustering:** `learning_language`, `ui_language`
+
+Optimized for:
+- time-based queries
+- language-level aggregations
+
+---
+
+## 📈 Dashboard
+
+### Users by Learning Language
+![Users by Learning Language](images/bar_chart.png)
+
+### Accuracy Distribution
+![Accuracy Distribution](images/violin_plot.png)
+
+### Daily Practice Trends
+![Daily Practice Trends](images/trend_chart.png)
+
+---
+
+## 📁 Repository Structure
+```
+Duolingo-Data-Insights/
+├── dbt/
+├── kestra/
+├── streamlit_app/
+├── images/
+├── docker-compose.yml
+├── template.env
+└── README.md
+```
+
+---
 
 ## Running this Project
 
