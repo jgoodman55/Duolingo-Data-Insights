@@ -4,7 +4,7 @@ _End-to-end batch data engineering project for the DataTalksClub Data Engineerin
 ---
 
 ## 🚀 Why This Project Matters
-Duolingo’s spaced repetition dataset is widely used in research but not easily accessible for practical analytics.
+Duolingo’s spaced repetition dataset is widely used in research but is not easily accessible for practical analytics.
 
 This project transforms a **research dataset into a production-style analytics platform**, enabling:
 - exploration of language learning behavior at scale
